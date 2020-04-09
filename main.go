@@ -120,7 +120,8 @@ Options:
 					rm[s] += r.size
 				}
 			}
-		} else if all {
+		} else {
+			// must have come from the command line args _or_ it's a file
 			tot += r.size
 			rv = append(rv, r)
 		}

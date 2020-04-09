@@ -40,7 +40,7 @@ type duState struct {
 	wg             sync.WaitGroup
 }
 
-func Walk(nm []string, all bool, followSymlinks bool) (chan result, chan error) {
+func Walk(names []string, all bool, followSymlinks bool) (chan result, chan error) {
 
 	// number of workers
 	nworkers := runtime.NumCPU() * _ParallelismFactor
@@ -60,9 +60,50 @@ func Walk(nm []string, all bool, followSymlinks bool) (chan result, chan error) 
 	}
 
 	// send work to workers
-	for i := range nm {
-		d.wg.Add(1)
-		d.ch <- nm[i]
+	for i := range names {
+		var fi os.FileInfo
+		var err error
+
+		nm := names[i]
+		if d.followSymlinks {
+			fi, err = os.Stat(nm)
+		} else {
+			fi, err = os.Lstat(nm)
+		}
+		if err != nil {
+			d.errch <- err
+			continue
+		}
+
+		m := fi.Mode()
+		switch {
+		case m.IsDir():
+			// we only give dirs to workers
+			d.wg.Add(1)
+			d.ch <- nm
+
+		case m.IsRegular():
+			d.out <- result{
+				isdir: false,
+				name:  nm,
+				size:  uint64(fi.Size()),
+			}
+
+		case (m & os.ModeSymlink) > 0:
+			if d.followSymlinks {
+				fi, err = os.Stat(nm)
+				if err != nil {
+					d.errch <- err
+				}
+			}
+			d.out <- result{
+				isdir: false,
+				name:  nm,
+				size:  uint64(fi.Size()),
+			}
+
+		default:
+		}
 	}
 
 	// close the channels when we're all done
