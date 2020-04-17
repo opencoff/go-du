@@ -188,6 +188,7 @@ func (d *duState) walkPath(nm string) (dirs []string, tot uint64, err error) {
 				size:  uint64(fi.Size()),
 			}
 		}
+		return nil, uint64(fi.Size()), nil
 
 	default:
 		return nil, 0, err
