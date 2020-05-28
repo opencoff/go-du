@@ -16,9 +16,9 @@ package main
 import (
 	"fmt"
 	"os"
+	"runtime"
 	"sync"
 	"syscall"
-	"runtime"
 )
 
 type result struct {
@@ -337,15 +337,19 @@ func (d *duState) IsOneFS(nm string, fi os.FileInfo) bool {
 
 	if st, ok := fi.Sys().(*syscall.Stat_t); ok {
 		if _, ok := d.fs.Load(st.Dev); ok {
-			return false
+			//fmt.Printf("?%s: %x, same fs\n", nm, st.Dev)
+			return true
 		}
+		//fmt.Printf("-%s: %x: crossing fs boundary\n", nm, st.Dev)
 	}
-	return true
+
+	return false
 }
 
 // track the name and the device major/minor against it
 func (d *duState) TrackFS(nm string, fi os.FileInfo) {
 	if st, ok := fi.Sys().(*syscall.Stat_t); ok {
+		//fmt.Printf("+fs: %s dev %x\n", nm, st.Dev)
 		d.fs.Store(st.Dev, nm)
 	}
 }
@@ -362,7 +366,6 @@ func (d *duState) TrackInode(ino uint64, nm string) bool {
 	//fmt.Printf("inode %d: +tracked (%s)\n", ino, nm)
 	return false
 }
-
 
 // return inode and number of hardlinks
 func nlinks(fi os.FileInfo) (inode uint64, nlinks uint64) {
