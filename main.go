@@ -48,11 +48,13 @@ func main() {
 	var byts bool
 	var total bool
 	var symlinks bool
+	var onefs bool
 	var all bool
 
 	flag.BoolVarP(&version, "version", "", false, "Show version info and quit")
 	flag.BoolVarP(&Verbose, "verbose", "v", false, "Show verbose output")
 	flag.BoolVarP(&symlinks, "follow-symlinks", "L", false, "Follow symlinks")
+	flag.BoolVarP(&onefs, "single-filesystem", "x", false, "Don't cross mount points")
 	flag.BoolVarP(&all, "all", "a", false, "Show all files & dirs")
 	flag.BoolVarP(&human, "human-size", "h", false, "Show size in human readable form")
 	flag.BoolVarP(&kb, "kilo-byte", "k", false, "Show size in kilo bytes")
@@ -66,7 +68,7 @@ func main() {
 Usage: %s [options] dir [dir...]
 
 Options:
-`, Z, Z, Z)
+`, Z, Z)
 		flag.PrintDefaults()
 		os.Stdout.Sync()
 		os.Exit(0)
@@ -98,7 +100,11 @@ Options:
 		}
 	}
 
-	ch, ech := Walk(args, all, symlinks)
+	// sort the args in decreasing length so our prefix matching always
+	// finds the longest match
+	sort.Sort(byLen(args))
+
+	ch, ech := Walk(args, all, onefs, symlinks)
 
 	// harvest errors
 	errs := make([]string, 0, 8)
@@ -146,6 +152,21 @@ Options:
 	if total {
 		fmt.Printf("%12s TOTAL\n", size(tot))
 	}
+}
+
+type byLen []string
+
+func (b byLen) Len() int {
+	return len(b)
+}
+
+// we're doing decreasing order of length
+func (b byLen) Less(i, j int) bool {
+	return len(b[i]) > len(b[j])
+}
+
+func (b byLen) Swap(i, j int) {
+	b[i], b[j] = b[j], b[i]
 }
 
 // This will be filled in by "build"
