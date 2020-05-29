@@ -19,25 +19,34 @@ import (
 	"path"
 	"sort"
 	"strings"
+	"sync"
+	"syscall"
 
 	flag "github.com/opencoff/pflag"
+
+	"github.com/opencoff/go-walk"
 )
 
 var Z string = path.Base(os.Args[0])
 var Verbose bool
 
-type rslice []result
+type result struct {
+	name string
+	size uint64
+}
 
-func (r rslice) Len() int {
+type bySize []result
+
+func (r bySize) Len() int {
 	return len(r)
 }
 
-func (r rslice) Swap(i, j int) {
+func (r bySize) Swap(i, j int) {
 	r[i], r[j] = r[j], r[i]
 }
 
 // we're doing reverse sort.
-func (r rslice) Less(i, j int) bool {
+func (r bySize) Less(i, j int) bool {
 	return r[i].size > r[j].size
 }
 
@@ -104,7 +113,12 @@ Options:
 	// finds the longest match
 	sort.Sort(byLen(args))
 
-	ch, ech := Walk(args, all, onefs, symlinks)
+	opt := &walk.Options{
+		OneFS:          onefs,
+		FollowSymlinks: symlinks,
+	}
+
+	ch, ech := walk.Walk(args, walk.FILE, opt)
 
 	// harvest errors
 	errs := make([]string, 0, 8)
@@ -114,22 +128,41 @@ Options:
 		}
 	}()
 
-	// now harvest dirs and files
-	var tot uint64
-	rv := make([]result, 0, 8192)
-	rm := make(map[string]uint64)
+	linkmap := &sync.Map{}
+	hardlinked := func(fi os.FileInfo, nm string) bool {
+		st, ok := fi.Sys().(*syscall.Stat_t)
+		if !ok {
+			return false
+		}
+		if st.Nlink == 1 {
+			return false
+		}
+		if _, ok = linkmap.LoadOrStore(st.Ino, nm); ok {
+			return true
+		}
+		return false
+	}
+
+	// now harvest results - we know we will only get files and their info.
+	res := make([]result, 0, 1024)
+	sizes := make(map[string]uint64)
 	for r := range ch {
-		if r.isdir {
-			for i := range args {
-				s := args[i]
-				if strings.HasPrefix(r.name, s) {
-					rm[s] += r.size
-				}
+		// don't count hardlinks
+		if hardlinked(r.Stat, r.Path) {
+			continue
+		}
+
+		sz := uint64(r.Stat.Size())
+		for i := range args {
+			nm := args[i]
+			if strings.HasPrefix(r.Path, nm) {
+				sizes[nm] += sz
+				break
 			}
-		} else {
-			// must have come from the command line args _or_ it's a file
-			tot += r.size
-			rv = append(rv, r)
+		}
+		//fmt.Printf("## %12s %s\n", size(sz), r.Path)
+		if all {
+			res = append(res, result{r.Path, sz})
 		}
 	}
 
@@ -138,15 +171,17 @@ Options:
 	}
 
 	if !all {
-		for k, v := range rm {
-			tot += v
-			rv = append(rv, result{name: k, size: v})
+		for k, v := range sizes {
+			res = append(res, result{k, v})
 		}
 
 	}
-	sort.Sort(rslice(rv))
-	for i := 0; i < len(rv); i++ {
-		r := rv[i]
+
+	var tot uint64
+	sort.Sort(bySize(res))
+	for i := range res {
+		r := res[i]
+		tot += r.size
 		fmt.Printf("%12s %s\n", size(r.size), r.name)
 	}
 	if total {

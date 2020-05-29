@@ -5,7 +5,7 @@ installdir = $(HOME)/bin/$(shell uname)
 
 all: $(bin)
 
-$(bin): main.go du.go humansize.go die.go
+$(bin): main.go humansize.go die.go
 	./build -s
 
 install: $(bin)
