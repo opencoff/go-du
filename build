@@ -27,13 +27,11 @@ PWD=`pwd`
 
 Static=0
 Dryrun=0
-Prodver=0.1
+Prodver=""
 Verbose=0
 
 hostos=$(go env GOHOSTOS)       || exit 1
 hostcpu=$(go env GOHOSTARCH)    || exit 1
-
-[ -f ./version ] && Prodver=$(cat ./version)
 
 die() {
     echo "$Z: $@" 1>&2
@@ -102,7 +100,8 @@ And, PROGS is one or more go programs.
 
 With no arguments, $0 builds: $Progs (source in ./src/)
 
-If ./version is present, its content are used as version number for the binary.
+The repository's latest tag is used as the default version of the software being
+built.
 
 Options:
     -h, --help          Show this help message and quit
@@ -111,8 +110,8 @@ Options:
     -a X, --arch=X      Cross compile for OS-CPU 'X' [$hostos-$hostcpu]
     -n, --dry-run       Dry-run, don't actually build anything [False]
     -t, --test          Run "go test" on modules named on the command line [False]
-    -r, --race          Build with race detector
-    -m, --msan          Build with msan for supported archs (linux/amd64)
+    -r, --race          Build with race detector [False]
+    -m, --msan          Build with msan for supported archs (linux/amd64) [False]
     -v, --verbose       Build verbosely (adds "-v" to go tooling) [False]
     --vet               Run "go vet" on modules named on the command line [False]
     -x                  Run in debug/trace mode [False]
@@ -122,7 +121,7 @@ EOF
 }
 
 host=`uname|tr '[A-Z]' '[a-z]'`
-export GO15VENDOREXPERIMENT=1
+#export GO15VENDOREXPERIMENT=1
 
 declare -A oses
 declare -A cpus
@@ -296,6 +295,7 @@ if [ $Printarch -gt 0 ]; then
     exit 0
 fi
 
+
 # This is where build outputs go
 Bindir=$PWD/bin/$cross
 Hostbindir=$PWD/bin/$hostos-$hostcpu
@@ -312,13 +312,20 @@ if [ -d "./.hg" ]; then
     else
         rev="hg:${brev}"
     fi
+    if [ -z "$Prodver" ]; then
+        Prodver=$(hg log -r "branch(stable) and tag()" -T "{tags}\n" | tail -1)
+    fi
 elif [ -d "./.git" ]; then
     xrev=$(git describe --always --dirty --long --abbrev=12) || exit 1
     rev="git:$xrev"
+    if [ -z "$Prodver" ]; then
+        Prodver=$(git tag --list | tail -1)
+    fi
 else
     rev="UNKNOWN-VER"
     echo "$0: Can't find version info" 1>&2
 fi
+
 
 # Do Protobufs if needed
 if [ -n "$Protobufs" ]; then
