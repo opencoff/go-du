@@ -13,7 +13,7 @@
 #
 # License: GPLv2
 #
-Progs=".:godu"
+Progs=".:go-du"
 
 # Relative path to protobuf sources
 # e.g. src/foo/a.proto
@@ -110,8 +110,6 @@ Options:
     -a X, --arch=X      Cross compile for OS-CPU 'X' [$hostos-$hostcpu]
     -n, --dry-run       Dry-run, don't actually build anything [False]
     -t, --test          Run "go test" on modules named on the command line [False]
-    -r, --race          Build with race detector [False]
-    -m, --msan          Build with msan for supported archs (linux/amd64) [False]
     -v, --verbose       Build verbosely (adds "-v" to go tooling) [False]
     --vet               Run "go vet" on modules named on the command line [False]
     -x                  Run in debug/trace mode [False]
@@ -121,7 +119,7 @@ EOF
 }
 
 host=`uname|tr '[A-Z]' '[a-z]'`
-#export GO15VENDOREXPERIMENT=1
+export GO15VENDOREXPERIMENT=1
 
 declare -A oses
 declare -A cpus
@@ -155,8 +153,6 @@ Tool=
 doinit=0
 args=
 Printarch=0
-Race=0
-Msan=0
 
 #set -x
 ac_prev=
@@ -193,14 +189,6 @@ do
             ;;
         --test|-t)
             Tool=test
-            ;;
-
-        --race|-r)
-            Race=1
-            ;;
-
-        --msan|-m)
-            Msan=1
             ;;
 
         --vet)
@@ -359,12 +347,8 @@ prodver="main.ProductVersion=$Prodver"
 date="main.Buildtime=`date -u '+%Y-%m-%dT%H:%M.%SZ'`"
 ldflags="-ldflags \"-X $repover -X $prodver -X $date $ldflags\""
 vflag=""
-rflag=""
-mflag=""
 
 [ $Verbose -gt 0 ] && vflag="-v"
-[ $Race -gt 0    ] && rflag="-race"
-[ $Msan -gt 0    ] && mflag="-msan"
 
 case $Tool in
     test)
@@ -392,11 +376,11 @@ case $Tool in
                 out=${p##*:}
                 dir=${p%%:*}
             else
-                out=$(basename $p .go)
+                out=$p
                 dir=$p
             fi
             echo "   $dir: $out .. "
-            $e eval go build $vflag $rflag $mflag -o $Bindir/$out $isuffix "$ldflags" ./$dir || exit 1
+            $e eval go build $vflag -o $Bindir/$out $isuffix "$ldflags" ./$dir || exit 1
         done
         ;;
 esac

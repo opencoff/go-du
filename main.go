@@ -22,7 +22,8 @@ import (
 	"sync"
 	"syscall"
 
-	flag "github.com/opencoff/pflag"
+	//flag "github.com/opencoff/pflag"
+	flag "github.com/spf13/pflag"
 
 	"github.com/opencoff/go-walk"
 )
@@ -59,6 +60,7 @@ func main() {
 	var symlinks bool
 	var onefs bool
 	var all bool
+	var excludes []string
 
 	flag.BoolVarP(&version, "version", "", false, "Show version info and quit")
 	flag.BoolVarP(&Verbose, "verbose", "v", false, "Show verbose output")
@@ -69,6 +71,7 @@ func main() {
 	flag.BoolVarP(&kb, "kilo-byte", "k", false, "Show size in kilo bytes")
 	flag.BoolVarP(&byts, "byte", "b", false, "Show size in bytes")
 	flag.BoolVarP(&total, "total", "t", false, "Show total size")
+	flag.StringSliceVarP(&excludes, "exclude", "", nil, "Exclude names starting with `N`")
 
 	flag.Usage = func() {
 		fmt.Printf(
@@ -116,6 +119,7 @@ Options:
 	opt := &walk.Options{
 		OneFS:          onefs,
 		FollowSymlinks: symlinks,
+		Excludes:	excludes,
 	}
 
 	ch, ech := walk.Walk(args, walk.FILE, opt)
@@ -137,7 +141,9 @@ Options:
 		if st.Nlink == 1 {
 			return false
 		}
-		if _, ok = linkmap.LoadOrStore(st.Ino, nm); ok {
+
+		key := fmt.Sprintf("%d:%d:%d", st.Dev, st.Rdev, st.Ino)
+		if _, ok = linkmap.LoadOrStore(key, nm); ok {
 			return true
 		}
 		return false

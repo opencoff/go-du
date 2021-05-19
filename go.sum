@@ -1,4 +1,4 @@
-github.com/opencoff/go-walk v0.1.1 h1:2lR6p9MTqPPwvujdT+rvYsvNSQ8jwMXVtkUZAsuwTGI=
-github.com/opencoff/go-walk v0.1.1/go.mod h1:XWxjhkY75406eJbXXJAR7rvb57yvR3ZQm0lqNnoQ1LQ=
-github.com/opencoff/pflag v0.5.0 h1:kK3cSTlGj0fHby/PoFzHkf+Jx3PdiACJwzYDWEWlEKQ=
-github.com/opencoff/pflag v0.5.0/go.mod h1:mTLzGGUGda1Av3d34iAJlh0JIlRxmFZtmc6qoWPspK0=
+github.com/opencoff/go-walk v0.1.3 h1:1lLlTGuhhmciuu99K1B1RMY3mx6/FHXXIlHOK31kfpg=
+github.com/opencoff/go-walk v0.1.3/go.mod h1:BuysoncE0iPYHNoqPpk1V/Pnc/HXlA6OHO0uV///DD0=
+github.com/spf13/pflag v1.0.5 h1:iy+VFUOCP1a+8yFto/drg2CJ5u0yRoB7fZw3DKv/JXA=
+github.com/spf13/pflag v1.0.5/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An2Bg=
