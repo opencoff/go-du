@@ -1,7 +1,8 @@
 
-bindir = ./bin/$(shell ./build --print-arch)
+arch = $(shell ./build --print-arch)
+bindir = ./bin/$(arch)
 bin = $(bindir)/godu
-installdir = $(HOME)/bin/$(shell uname)
+installdir = $(HOME)/bin/$(arch)
 
 all: $(bin)
 
