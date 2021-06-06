@@ -6,7 +6,8 @@ installdir = $(HOME)/bin/$(arch)
 
 all: $(bin)
 
-$(bin): main.go humansize.go die.go
+.PHONY: $(bin)
+$(bin):
 	./build -s
 
 install: $(bin)
