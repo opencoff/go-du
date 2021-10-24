@@ -1,6 +1,6 @@
 module github.com/opencoff/go-du
 
-go 1.16
+go 1.17
 
 require (
 	github.com/opencoff/go-walk v0.2.0
