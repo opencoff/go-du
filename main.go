@@ -19,11 +19,11 @@ import (
 	"path"
 	"sort"
 	"strings"
+	"sync"
 	"syscall"
 
-	flag "github.com/opencoff/pflag"
-
 	"github.com/opencoff/go-walk"
+	flag "github.com/opencoff/pflag"
 )
 
 var Z string = path.Base(os.Args[0])
@@ -146,10 +146,13 @@ Options:
 
 	// harvest errors
 	errs := make([]string, 0, 8)
+	var wg sync.WaitGroup
+	wg.Add(1)
 	go func() {
 		for e := range ech {
 			errs = append(errs, fmt.Sprintf("%s", e))
 		}
+		wg.Done()
 	}()
 
 	// now harvest results - we know we will only get files and their info.
@@ -169,12 +172,12 @@ Options:
 				break
 			}
 		}
-		//fmt.Printf("## %12s %s\n", size(sz), r.Path)
 		if all {
 			res = append(res, result{r.Path, sz})
 		}
 	}
 
+	wg.Wait()
 	if len(errs) > 0 {
 		die("%s", strings.Join(errs, "\n"))
 	}
