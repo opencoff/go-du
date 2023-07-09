@@ -22,10 +22,8 @@ import (
 	"sync"
 	"syscall"
 
-	//flag "github.com/opencoff/pflag"
-	flag "github.com/spf13/pflag"
-
 	"github.com/opencoff/go-walk"
+	flag "github.com/opencoff/pflag"
 )
 
 var Z string = path.Base(os.Args[0])
@@ -117,22 +115,15 @@ Options:
 	sort.Sort(byLen(args))
 
 	opt := &walk.Options{
-		OneFS:          onefs,
 		FollowSymlinks: symlinks,
-		Excludes:	excludes,
+		OneFS:          onefs,
+		Type:           walk.FILE,
+		Excludes:       excludes,
 	}
 
-	ch, ech := walk.Walk(args, walk.FILE, opt)
-
-	// harvest errors
-	errs := make([]string, 0, 8)
-	go func() {
-		for e := range ech {
-			errs = append(errs, fmt.Sprintf("%s", e))
-		}
-	}()
-
-	linkmap := &sync.Map{}
+	// We know this function will be called from a single threaded
+	// context; so we can use a regular map and not sync.Map
+	linkmap := make(map[string]string)
 	hardlinked := func(fi os.FileInfo, nm string) bool {
 		st, ok := fi.Sys().(*syscall.Stat_t)
 		if !ok {
@@ -143,11 +134,26 @@ Options:
 		}
 
 		key := fmt.Sprintf("%d:%d:%d", st.Dev, st.Rdev, st.Ino)
-		if _, ok = linkmap.LoadOrStore(key, nm); ok {
+		if _, ok := linkmap[key]; ok {
 			return true
 		}
+
+		linkmap[key] = nm
 		return false
 	}
+
+	ch, ech := walk.Walk(args, opt)
+
+	// harvest errors
+	errs := make([]string, 0, 8)
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		for e := range ech {
+			errs = append(errs, fmt.Sprintf("%s", e))
+		}
+		wg.Done()
+	}()
 
 	// now harvest results - we know we will only get files and their info.
 	res := make([]result, 0, 1024)
@@ -166,12 +172,12 @@ Options:
 				break
 			}
 		}
-		//fmt.Printf("## %12s %s\n", size(sz), r.Path)
 		if all {
 			res = append(res, result{r.Path, sz})
 		}
 	}
 
+	wg.Wait()
 	if len(errs) > 0 {
 		die("%s", strings.Join(errs, "\n"))
 	}
