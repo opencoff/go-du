@@ -1,4 +1,12 @@
+github.com/opencoff/go-utils v0.8.0 h1:8p1C5DrjMCczxFg9LcT9KmdahksS6Ox8zgh7O2rZuqo=
+github.com/opencoff/go-utils v0.8.0/go.mod h1:8hMC3uc+N0wUMxpmW2yzM6FuhlCCxRST1Wj+cYntqFA=
 github.com/opencoff/go-walk v0.5.0 h1:RJxlk/6xEj8Fd61/BRFuzfOT30ZiVXgMaqs1MPTf45Q=
 github.com/opencoff/go-walk v0.5.0/go.mod h1:KOaaED4TjMDDPwfweC2HEKFlfysyT2iMI5i2m35mCdA=
 github.com/opencoff/pflag v1.0.6-sh2 h1:Vw3VuG7Z2Cmpev4U3mB16qXYP20RHoxCAlxPOPSpDJU=
 github.com/opencoff/pflag v1.0.6-sh2/go.mod h1:2bXtpAD/5h/2LarkbsRwiUxqnvB1nZBzn9Xjad1P41A=
+golang.org/x/crypto v0.14.0 h1:wBqGXzWJW6m1XrIKlAH0Hs1JJ7+9KBwnIO8v66Q9cHc=
+golang.org/x/crypto v0.14.0/go.mod h1:MVFd36DqK4CsrnJYDkBA3VC4m2GkXAM0PvzMCn4JQf4=
+golang.org/x/sys v0.13.0 h1:Af8nKPmuFypiUBjVoU9V20FiaFXOcuZI21p0ycVYYGE=
+golang.org/x/sys v0.13.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/term v0.13.0 h1:bb+I9cTfFazGW51MZqBVmZy7+JEJMouUHTUSKVQLBek=
+golang.org/x/term v0.13.0/go.mod h1:LTmsnFJwVN6bCy1rVCoS+qHT1HhALEFxKncY3WNNh4U=

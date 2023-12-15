@@ -23,6 +23,7 @@ import (
 	"syscall"
 
 	"github.com/opencoff/go-walk"
+	"github.com/opencoff/go-utils"
 	flag "github.com/opencoff/pflag"
 )
 
@@ -95,10 +96,10 @@ Options:
 		die("Insufficient args. Try %s --help", Z)
 	}
 
-	var size func(uint64) string = humansize
+	var size func(uint64) string
 
 	if human {
-		size = humansize
+		size = utils.HumanizeSize
 	} else if kb {
 		size = func(z uint64) string {
 			z /= 1024
