@@ -1,10 +1,10 @@
 module github.com/opencoff/go-du
 
-go 1.21.1
+go 1.22
 
 require (
-	github.com/opencoff/go-utils v0.9.3
-	github.com/opencoff/go-walk v0.6.1
+	github.com/opencoff/go-utils v0.9.7
+	github.com/opencoff/go-walk v0.6.4
 	github.com/opencoff/pflag v1.0.6-sh2
 )
 
