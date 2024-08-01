@@ -1,6 +1,8 @@
 [![GoDoc](https://godoc.org/github.com/opencoff/go-du?status.svg)](https://godoc.org/github.com/opencoff/go-du)
 
 # README for go-du
+This repository is **ARCHIVED**; its content is moved to
+[go-progs](https://github.com/opencoff/go-progs).
 
 
 ## What is this?
